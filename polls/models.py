@@ -23,7 +23,7 @@ class Poll(models.Model):
     end_votes = models.DateTimeField(default=(lambda: timezone.now()+timedelta(days=5)),
                                      help_text=_('The latest time votes get accepted'))
 
-    def vote(self, choices, user=None, data=None):
+    def vote(self, choices, user=None, data=None, comment=None):
         current_time = timezone.now()
         if self.is_closed:
             raise PollClosed
@@ -50,7 +50,9 @@ class Poll(models.Model):
                 raise PollInvalidChoice
             if self.is_anonymous:
                 user = None
-            vote = Vote.objects.create(poll=self, user=user, choice=choice, data=data)
+            vote = Vote.objects.create(poll=self, user=user, 
+                                       choice=choice, data=data,
+                                       comment=comment)
             votes.append(vote)
         return votes
     
