@@ -136,6 +136,26 @@ class PollsApiTest(ResourceTestCase):
         rdata = json.loads(self.deserialize(resp)['data'])
         self.assertDictEqual(rdata, vote_data['data'])
         
+        
+    def test_voting_with_comment(self):
+        poll_data = self.poll_data(anonymous=True)
+        resp = self.create_poll(poll_data)
+        self.assertHttpCreated(resp)
+        pk = Poll.objects.order_by('-id')[0].pk
+        choice_data = self.choice_data(poll_id=pk)
+        self.create_choices(choice_data, quantity=3)
+        vote_data = self.vote_data(poll_id=1, choices=[1])
+        vote_data['data'] = {
+            'foo' : 'bar',
+        }
+        vote_data['comment'] = 'this is a comment'
+        resp = self.api_client.post(self.getURL('vote'), data=vote_data, format='json')
+        self.assertHttpCreated(resp)
+        rdata = json.loads(self.deserialize(resp)['data'])
+        rcomment = self.deserialize(resp)['comment']
+        self.assertDictEqual(rdata, vote_data['data'])
+        self.assertEqual(rcomment, vote_data['comment'])
+        
     def test_voting_no_choice(self):
         poll_data = self.poll_data(anonymous=True)
         resp = self.create_poll(poll_data)
