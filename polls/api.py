@@ -119,7 +119,8 @@ class VoteResource(NamespacedModelResource):
             try:
                 votes = poll.vote(choices=bundle.data.get('choice'),
                           data=bundle.data.get('data'),
-                          user=bundle.request.user)
+                          user=bundle.request.user,
+                          comment=bundle.data.get('comment'))
             except (PollClosed, PollNotOpen, PollNotAnonymous, PollNotMultiple):
                 raise ImmediateHttpResponse(response=http.HttpForbidden('not allowed'))
             except PollInvalidChoice:
