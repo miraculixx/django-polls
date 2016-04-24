@@ -16,7 +16,8 @@ class PollAdmin(admin.ModelAdmin):
 
 class VoteAdmin(admin.ModelAdmin):
     model = Vote
-    list_display = ('choice', 'user', 'poll')
+    list_display = ('choice', 'user', 'poll', 'created')
+    readonly_fields = ('created',)
 
 admin.site.register(Poll, PollAdmin)
 admin.site.register(Vote, VoteAdmin)
