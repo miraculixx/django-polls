@@ -135,7 +135,7 @@ class PollsApiTest(ResourceTestCase):
         resp = self.api_client.post(
             self.getURL('vote'), data=vote_data, format='json')
         self.assertHttpCreated(resp)
-        
+
     def test_anonymous_voting_multiple(self):
         poll_data = self.poll_data(anonymous=True)
         resp = self.create_poll(poll_data)
@@ -149,13 +149,13 @@ class PollsApiTest(ResourceTestCase):
         resp = self.api_client.post(
             self.getURL('vote'), data=vote_data, format='json')
         self.assertHttpCreated(resp)
-        # -- second vote should be refused 
+        # -- second vote should be refused
         resp = self.api_client.post(
             self.getURL('vote'), data=vote_data, format='json')
         self.assertHttpForbidden(resp)
         # try the same based on client id
         # -- first vote should be ok
-        self.api_client.client.cookies['quickpollscid'] = uuid.uuid4().hex 
+        self.api_client.client.cookies['quickpollscid'] = uuid.uuid4().hex
         resp = self.api_client.post(
             self.getURL('vote'), data=vote_data, format='json')
         self.assertHttpCreated(resp)
@@ -236,6 +236,21 @@ class PollsApiTest(ResourceTestCase):
             self.getURL('vote'), data=vote_data, format='json')
         self.assertHttpCreated(resp)
 
+    def test_voting_multiple_polls_exist(self):
+        # create multiple polls with choices
+        for ref in ['one', 'two']:
+            poll_data = self.poll_data(anonymous=True)
+            poll_data['reference'] = ref
+            resp = self.create_poll(poll_data)
+            self.assertHttpCreated(resp)
+            pk = Poll.objects.order_by('-id')[0].pk
+            choice_data = self.choice_data(poll_id=pk)
+            self.create_choices(choice_data, quantity=3)
+        vote_data = self.vote_data(poll_id='two', choices=[1])
+        resp = self.api_client.post(
+            self.getURL('vote'), data=vote_data, format='json')
+        self.assertHttpCreated(resp)
+        
     def create_poll(self, poll_data):
         return self.api_client.post(self.getURL('poll'), format='json',
                                     data=poll_data, authentication=self.get_credentials(admin=True))
