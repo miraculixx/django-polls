@@ -26,6 +26,8 @@ class Poll(models.Model):
         default=False, help_text=_('Allow to make multiple choices'))
     is_closed = models.BooleanField(
         default=False, help_text=_('Do not accept votes'))
+    allow_multi_votes = models.BooleanField(
+        default=False, help_text=_('Allow multiple votes by same user'))
     start_votes = models.DateTimeField(
         default=timezone.now, help_text=_('The earliest time votes get accepted'))
     end_votes = models.DateTimeField(default=vote_endtime,
@@ -124,10 +126,14 @@ class Poll(models.Model):
                      labels=labels, votes=count)
         return stats
 
-    def already_voted(self, user):
+    def already_voted(self, user): 
         if not self.is_anonymous:
             if user.is_anonymous():
                 raise PollNotAnonymous
+        if self.allow_multi_votes:
+            # if we allow multiple votes, we don't care how many
+            # votes this user has already vote
+            return False
         return self.vote_set.filter(user=user).exists()
 
     def __unicode__(self):
@@ -173,5 +179,4 @@ class Vote(models.Model):
         return u'Vote for %s' % self.choice
 
     class Meta:
-        unique_together = ('user', 'poll', 'choice')
         ordering = ['poll', 'choice']
