@@ -82,7 +82,10 @@ class PollResource(NamespacedModelResource):
             BasicAuthentication(), SessionAuthentication(), Authentication())
         authorization = ReasonableDjangoAuthorization(read_list='',
                                                       read_detail='')
-
+        filtering = {
+            'reference': 'exact',
+        }
+        
     def obj_create(self, bundle, **kwargs):
         return super(PollResource, self).obj_create(bundle, user=bundle.request.user)
 
@@ -178,7 +181,8 @@ class VoteResource(NamespacedModelResource):
         bundle = super(VoteResource, self).dehydrate(bundle)
         bundle.data['data'] = json.dumps(bundle.obj.data)
         # represent values as strings
-        bundle.data['poll'] = self.get_resource_uri(bundle.obj)
+        bundle.data['poll'] = self.get_resource_uri(bundle.obj.poll)
+        bundle.data['resource_uri'] = self.get_resource_uri(bundle.obj)
         bundle.data['choice'] = bundle.obj.choice.code
         return bundle
 
